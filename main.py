@@ -7,6 +7,7 @@ report = 'sample_report.csv'
 
 report_data = pd.read_csv(report)
 lookup = pd.read_csv('sku_replacement.csv')
+name = "yehuda"
 
 # merge (vlookup) from lookup.csv
 # new sku and multiplier
