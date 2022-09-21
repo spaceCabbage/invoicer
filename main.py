@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-# choose file 
+# choose file (file picker?)
 # report = input(enter path to this weeks report:)
 report = 'sample_report.csv'
 
