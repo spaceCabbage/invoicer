@@ -38,7 +38,7 @@ pivot = pd.pivot_table(qb_merged, index=['type', 'qb_sku'], values=['new qty', '
 # export properly formatted invoice as per qb requirements
 
 
-# pivot.to_csv('invoice.csv')
+pivot.to_csv('invoice.csv')
 
 # export credit memo of all returns and fees to be entered manually (💩)
 
