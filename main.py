@@ -1,23 +1,24 @@
 import pandas as pd
 import numpy as np
 
-# @ choose file (file picker?)
+# ? choose file
+
+# @(file picker?)
 #  report = input(enter path to this weeks report:)
+
 report = 'sample_report.csv'
 
 report_data = pd.read_csv(report)
 lookup = pd.read_csv('sku_replacement.csv')
 
 
+# @ set all negative adjustments as type refund
 
 
-# @ get correct skus from lookup df
-
-qb_merged = report_data.merge(lookup, how='left', on='sku')
+# @ set all order skus starting wiht "amzn.gr." as type "GR"
 
 
-
-# ? get all skus that were not found in lookup df
+# ? get all skus that are not found in lookup df
 
 er_df = report_data.merge(lookup, how='outer', on='sku', indicator=True)
 
@@ -32,19 +33,19 @@ print(er_df)
 
 
 
-# ? new sku and multiplier:
+# ? get correct skus from lookup df
 
-# print(qb_merged.head(30))
+qb_merged = report_data.merge(lookup, how='left', on='sku')
+
+
+
+# ? new sku and multiplier:
 
 # multiply qty by multiplier
 
 qb_merged['new qty'] = qb_merged['quantity'] * qb_merged['mulipier']
 
 # print(qb_merged.head(30))
-
-
-
-# @ set all negative adjustments as refund type
 
 
 
@@ -56,7 +57,7 @@ pivot = pd.pivot_table(qb_merged, index=['type', 'qb_sku'], values=['new qty', '
 
 
 
-# @ any skus of type order and of marketplace Ebay must be deducted from qty (not price total)
+# @ deduct ebay order qty from total qty (leave total price)
 
 
 
