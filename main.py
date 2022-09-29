@@ -34,11 +34,30 @@ for index, row in er_df.iterrows():
     
     print('-------------------')
     
-    print('for ' + ersku + ' youve entered:\n' 'New SKU: ' + newsku + '\n' + 'Multiplier: ' + str(newmultiplier))
+    print('for sku ' + "\x1B[1;4m" + ersku + "\x1B[0m" + ' youve entered:\n' 'New SKU: ' + newsku + '\n' + 'Multiplier: ' + str(newmultiplier))
     
     print('-------------------')
-
     
+    #add to newskus df
+
+
+confirm = input('does this look correct? (enter y/yes or n/no)\n')
+
+if confirm == 'y' or 'yes':
+    print('CONFIRMED!\nAdding these rows to the lookup table for next time')
+    # append_new_sku()
+
+elif confirm == 'n' or 'no':
+    print('OK lets do this again')
+    # correct typos and try again
+    
+    
+    
+# @ add new replacement sku to sku_replacement.csv for next time
+
+    def append_new_sku(newsku, multiplier):
+        newsku = newsku
+        multiplier = multiplier
     
     
 # ? get correct skus from lookup df
@@ -51,7 +70,7 @@ qb_merged = report_data.merge(lookup, how='left', on='sku')
 
 # multiply qty by multiplier
 
-qb_merged['new qty'] = qb_merged['quantity'] * qb_merged['mulipier']
+qb_merged['new qty'] = qb_merged['quantity'] * qb_merged['multiplier']
 
 # print(qb_merged.head(30))
 
@@ -62,7 +81,6 @@ qb_merged['new qty'] = qb_merged['quantity'] * qb_merged['mulipier']
 # @ set all order skus starting wiht "amzn.gr." as type "GR"
 
 
-# @ add new replacement sku to sku_replacement.csv for next time
 
 
 
