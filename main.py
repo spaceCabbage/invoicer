@@ -12,12 +12,6 @@ report_data = pd.read_csv(report)
 lookup = pd.read_csv('sku_replacement.csv')
 
 
-# @ set all negative adjustments as type refund
-
-
-# @ set all order skus starting wiht "amzn.gr." as type "GR"
-
-
 # ? get all skus that are not found in lookup df
 
 er_df = report_data.merge(lookup, how='outer', on='sku', indicator=True)
@@ -27,12 +21,21 @@ er_df = er_df[er_df['_merge'] == 'left_only']
 print('these skus were not found \n')
 print(er_df)
 
+# @ fix missing skus
 
+print('the following skus cannot be placed')
+print(er_df.sku)
+print('-------------------')
 
-# @ add new replacement sku to sku_replacement.csv for next time
+for index, row in er_df.iterrows():
+    ersku = row['sku']
+    
+    newsku = input('enter correct sku\n')
+    print
 
-
-
+    
+    
+    
 # ? get correct skus from lookup df
 
 qb_merged = report_data.merge(lookup, how='left', on='sku')
@@ -46,6 +49,17 @@ qb_merged = report_data.merge(lookup, how='left', on='sku')
 qb_merged['new qty'] = qb_merged['quantity'] * qb_merged['mulipier']
 
 # print(qb_merged.head(30))
+
+
+# @ set all negative adjustments as type refund
+
+
+# @ set all order skus starting wiht "amzn.gr." as type "GR"
+
+
+# @ add new replacement sku to sku_replacement.csv for next time
+
+
 
 
 
