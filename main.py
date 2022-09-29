@@ -18,8 +18,6 @@ er_df = report_data.merge(lookup, how='outer', on='sku', indicator=True)
 
 er_df = er_df[er_df['_merge'] == 'left_only']
 
-print('these skus were not found \n')
-print(er_df)
 
 # @ fix missing skus
 
@@ -29,9 +27,16 @@ print('-------------------')
 
 for index, row in er_df.iterrows():
     ersku = row['sku']
+    default_multiplier = 1
     
-    newsku = input('enter correct sku\n')
-    print
+    newsku = input('enter correct sku for ' + ersku + ' as per QB\n')
+    newmultiplier = input('enter product multiplier (leave blank for single packs): ') or default_multiplier
+    
+    print('-------------------')
+    
+    print('for ' + ersku + ' youve entered:\n' 'New SKU: ' + newsku + '\n' + 'Multiplier: ' + str(newmultiplier))
+    
+    print('-------------------')
 
     
     
