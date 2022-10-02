@@ -64,6 +64,7 @@ elif confirm == 'n' or 'no':
 
 qb_merged = report_data.merge(lookup, how='left', on='sku')
 
+name = 3
 
 
 # ? new sku and multiplier:
@@ -79,9 +80,6 @@ qb_merged['new qty'] = qb_merged['quantity'] * qb_merged['multiplier']
 
 
 # @ set all order skus starting wiht "amzn.gr." as type "GR"
-
-
-
 
 
 
