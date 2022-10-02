@@ -64,7 +64,6 @@ elif confirm == 'n' or 'no':
 
 qb_merged = report_data.merge(lookup, how='left', on='sku')
 
-name = 3
 
 
 # ? new sku and multiplier:
