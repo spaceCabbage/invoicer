@@ -60,7 +60,8 @@ def ercheck():
         print('CONFIRMED!\nAdding these rows to the lookup table for next time')
         # add df of new skus to lookup.csv
         new_skus.to_csv('sku_replacement.csv', mode='a', index=False, header=False)
-        
+        print('--------------------')
+
 
     elif confirm == 'n':
         # check for typos and try again
@@ -78,16 +79,12 @@ ercheck()
 qb_merged = report_data.merge(lookup, how='left', on='sku')
 
 
-# ? new sku and multiplier:
-
-# multiply qty by multiplier
+# ? multiply qty by multiplier
 
 qb_merged['new qty'] = qb_merged['quantity'] * qb_merged['multiplier']
 
-print(qb_merged.head(30))
 
-
-# @ set all negative adjustments as type refund
+# ? set all negative adjustments as type refund
 
 for index, row in qb_merged.iterrows():
     if row['type'] == 'Adjustment':
@@ -96,10 +93,10 @@ for index, row in qb_merged.iterrows():
             print(row['sku'] + ' changed to refund')
             
 
-# @ set all order skus starting with "amzn.gr." as type "GR"
+# ? set all ORDER! skus starting with "amzn.gr." as type "GR"
 
 for index, row in qb_merged.iterrows():
-    if row['type'].startswith('amzn.gr.'):
+    if row['sku'].startswith('amzn.gr.'):
         if row['type'] == 'Order':
             qb_merged.at[index, 'type'] = 'G&R'
             print(row['sku'] + ' changed to G&R')
@@ -108,7 +105,8 @@ for index, row in qb_merged.iterrows():
 # ? pivot report_data on new sku, total new qty, total price
 
 pivot = pd.pivot_table(qb_merged, index=['type', 'qb_sku'], values=['new qty', 'total'], aggfunc=np.sum)
-# print(pivot)
+
+#print(pivot)
 
 
 # @ deduct ebay order qty from total qty (leave total price)
@@ -117,9 +115,10 @@ pivot = pd.pivot_table(qb_merged, index=['type', 'qb_sku'], values=['new qty', '
 
 # ? export properly formatted invoice as per qb requirements
 
-# pivot.to_csv('invoice.csv')
+pivot.to_csv('invoice.csv')
+print('--------------------')
+print('--------------------')
+print('Invoice successfully saved!')
 
 
 # @ export credit memo of all returns and fees to be entered manually (💩)
-
-
