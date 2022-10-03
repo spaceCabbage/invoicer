@@ -1,10 +1,12 @@
+from tkinter.filedialog import askopenfilename
 import pandas as pd
 import numpy as np
+import easygui
 
 # ? choose file
 
-# @(file picker?)
-#  report = input(enter path to this weeks report:)
+#GUI file picker
+#report = easygui.fileopenbox()
 
 report = 'sample_report.csv'
 
@@ -21,7 +23,7 @@ er_df = er_df[er_df['_merge'] == 'left_only']
 er_df = er_df.drop_duplicates(subset='sku')
 
 
-# @ fix missing skus
+# ? fix missing skus
 def ercheck():
     print('the following skus cannot be placed')
     print(er_df.sku)
@@ -69,12 +71,6 @@ def ercheck():
     
 ercheck()   
     
-# @ add new replacement sku to sku_replacement.csv for next time
-
-def append_new_sku(newsku, multiplier):
-    newsku = newsku
-    multiplier = multiplier
-    
     
 # ? get correct skus from lookup df
 
@@ -88,13 +84,13 @@ qb_merged = report_data.merge(lookup, how='left', on='sku')
 
 qb_merged['new qty'] = qb_merged['quantity'] * qb_merged['multiplier']
 
-# print(qb_merged.head(30))
+print(qb_merged.head(30))
 
 
 # @ set all negative adjustments as type refund
 
 
-# @ set all order skus starting wiht "amzn.gr." as type "GR"
+# @ set all order skus starting with "amzn.gr." as type "GR"
 
 
 
