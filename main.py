@@ -20,44 +20,49 @@ er_df = er_df[er_df['_merge'] == 'left_only']
 
 
 # @ fix missing skus
+def ercheck():
 
-print('the following skus cannot be placed')
-print(er_df.sku)
-print('-------------------')
-
-for index, row in er_df.iterrows():
-    ersku = row['sku']
-    default_multiplier = 1
-    
-    newsku = input('enter correct sku for ' + ersku + ' as per QB\n')
-    newmultiplier = input('enter product multiplier (leave blank for single packs): ') or default_multiplier
-    
+    print('the following skus cannot be placed')
+    print(er_df.sku)
     print('-------------------')
-    
-    print('for sku ' + "\x1B[1;4m" + ersku + "\x1B[0m" + ' youve entered:\n' 'New SKU: ' + newsku + '\n' + 'Multiplier: ' + str(newmultiplier))
-    
-    print('-------------------')
-    
-    #add to newskus df
+
+    for index, row in er_df.iterrows():
+        ersku = row['sku']
+        default_multiplier = 1
+        
+        newsku = input('enter correct sku for ' + ersku + ' as per QB\n')
+        newmultiplier = input('enter product multiplier (leave blank for single packs): ') or default_multiplier
+        
+        print('-------------------')
+        
+        print('for sku ' + "\x1B[1;4m" + ersku + "\x1B[0m" + ' youve entered:\n' 'New SKU: ' + newsku + '\n' + 'Multiplier: ' + str(newmultiplier))
+        
+        print('-------------------')
+        
+        #add to newskus df
 
 
-confirm = input('does this look correct? (enter y/yes or n/no)\n')
+    confirm = input('does this look correct? (enter y/yes or n/no)\n')
 
-if confirm == 'y' or 'yes':
-    print('CONFIRMED!\nAdding these rows to the lookup table for next time')
-    # append_new_sku()
+    if confirm == 'y':
+        print('CONFIRMED!\nAdding these rows to the lookup table for next time')
+        # append_new_sku()
 
-elif confirm == 'n' or 'no':
-    print('OK lets do this again')
-    # correct typos and try again
+    elif confirm == 'n':
+        print('OK lets do this again:')
+        print('-------------------')
+        print('---- ATTEMPT 2 ----') 
+        print('-------------------')
+        ercheck()
+        # correct typos and try again
     
-    
+ercheck()   
     
 # @ add new replacement sku to sku_replacement.csv for next time
 
-    def append_new_sku(newsku, multiplier):
-        newsku = newsku
-        multiplier = multiplier
+def append_new_sku(newsku, multiplier):
+    newsku = newsku
+    multiplier = multiplier
     
     
 # ? get correct skus from lookup df
