@@ -74,8 +74,8 @@ def ercheck():
 ercheck()   
     
     
-# ? get correct skus from lookup df
-
+# ! get correct skus from lookup df
+#gotta figure out how to also lookup from the new_skus df too
 qb_merged = report_data.merge(lookup, how='left', on='sku')
 
 
@@ -106,19 +106,21 @@ for index, row in qb_merged.iterrows():
 
 pivot = pd.pivot_table(qb_merged, index=['type', 'qb_sku'], values=['new qty', 'total'], aggfunc=np.sum)
 
-#print(pivot)
 
 
-# @ deduct ebay order qty from total qty (leave total price)
+# ! deduct ebay order qty from total qty (leave total price)
 
-
+# holy shit this ones gonna be hard
 
 # ? export properly formatted invoice as per qb requirements
 
-pivot.to_csv('invoice.csv')
+# pivot.to_csv('invoice.csv')
+print(pivot)
 print('--------------------')
 print('--------------------')
 print('Invoice successfully saved!')
 
 
 # @ export credit memo of all returns and fees to be entered manually (💩)
+
+# jeez i haven't even bothered with this yet
