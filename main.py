@@ -18,13 +18,21 @@ er_df = report_data.merge(lookup, how='outer', on='sku', indicator=True)
 
 er_df = er_df[er_df['_merge'] == 'left_only']
 
+er_df = er_df.drop_duplicates(subset='sku')
+
 
 # @ fix missing skus
 def ercheck():
-
     print('the following skus cannot be placed')
     print(er_df.sku)
     print('-------------------')
+
+    new_skus = pd.DataFrame({
+        'sku': [],
+        'qb_sku': [],
+        'multiplier': [],
+    })
+
 
     for index, row in er_df.iterrows():
         ersku = row['sku']
@@ -40,21 +48,24 @@ def ercheck():
         print('-------------------')
         
         #add to newskus df
+        new_skus = new_skus.append({'sku': ersku, 'qb_sku': newsku, 'multiplier': newmultiplier}, ignore_index=True)
 
-
+    print(new_skus)
     confirm = input('does this look correct? (enter y/yes or n/no)\n')
 
     if confirm == 'y':
         print('CONFIRMED!\nAdding these rows to the lookup table for next time')
-        # append_new_sku()
+        # add df of new skus to lookup.csv
+        new_skus.to_csv('sku_replacement.csv', mode='a', index=False, header=False)
+        
 
     elif confirm == 'n':
-        print('OK lets do this again:')
+        # check for typos and try again
+        print('OK lets try this again:')
         print('-------------------')
         print('---- ATTEMPT 2 ----') 
         print('-------------------')
         ercheck()
-        # correct typos and try again
     
 ercheck()   
     
