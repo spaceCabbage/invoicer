@@ -73,6 +73,8 @@ def ercheck():
     
 ercheck()   
     
+
+#@ make df for each invoice (sales, g&r, adjustments, refunds)
     
 # ! get correct skus from lookup df
 #gotta figure out how to also lookup from the new_skus df too
