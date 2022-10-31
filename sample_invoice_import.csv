@@ -1,0 +1,7 @@
+﻿Invoice No.,*Customer,*Invoice Date,Memo,*Product/Service,Qty,*Amount
+1001,Chris Smith,3/3/2020,First invoice of 3 month contract.,Trimming,2,40
+1001,,,,Design,0.5,50
+1002,Karuna Ramachandran,4/4/2020,Monthly contract.,Trimming,1,20
+1002,,,,Design,1,100
+1002,,,,Gardening,3,120
+1003,Chris Smith:Job A,5/5/2020,No contract.,Trimming,3,60
