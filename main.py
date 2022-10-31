@@ -73,7 +73,7 @@ def ercheck(lookup):
         print('-------------------')
         print('---- ATTEMPT 2 ----') 
         print('-------------------')
-        ercheck()
+        ercheck(lookup)
     
 ercheck(lookup)   
     
@@ -83,11 +83,16 @@ ercheck(lookup)
 #gotta figure out how to also lookup from the new_skus df too
 qb_merged = report_data.merge(lookup, how='left', on='sku')
 
+#! parse g&r skus to get proper skus
 
 # ? multiply qty by multiplier
 
 qb_merged['new qty'] = qb_merged['quantity'] * qb_merged['multiplier']
 
+#! change other line types to fit in one of the types
+#! Liquidations Adjustments
+#!
+    
 
 # ? set all negative adjustments as type refund
 
@@ -97,6 +102,7 @@ for index, row in qb_merged.iterrows():
             qb_merged.at[index, 'type'] = 'Refund'
             print(row['sku'] + ' changed to refund')
             
+        
 
 # ? set all ORDER! skus starting with "amzn.gr." as type "GR"
 
@@ -106,22 +112,17 @@ for index, row in qb_merged.iterrows():
             qb_merged.at[index, 'type'] = 'G&R'
             print(row['sku'] + ' changed to G&R')
             
-#! parse g&r skus to get proper skus
 
 
 # ? pivot report_data on new sku, total new qty, total price
 
 pivot = pd.pivot_table(qb_merged, index=['type', 'qb_sku'], values=['new qty', 'total'], aggfunc=np.sum)
 pivot = pivot.reset_index()
-print(pivot)
 
-# dfs for each report to be exported as csv's
-# they each need a col for
-#'invoice No.', 'Customer', 'Invoice Date', 'Memo', 'Product/Service', 'Qty', 'Amount'
-# customer, date, and memo only th efirst line should be filled
-# the onvoice number should be 1001+ for all of them
+#? dfs for each report to be exported as csv's
 
 #@ sales df
+#! replace append with concat
 
 salesdf = pd.DataFrame({
         'Invoice No.': [],
@@ -132,7 +133,7 @@ salesdf = pd.DataFrame({
         'Qty': [],
         'Amount': [],
     })
-print(pivot)
+
 for index, row in pivot.iterrows():
     sku = row['qb_sku']
     qty = row['new qty']
@@ -148,12 +149,13 @@ for index, row in pivot.iterrows():
             'Amount': amount,
             }, ignore_index=True)
         
-print(salesdf)
-
 #! deduct ebay order qty from total qty (leave total price)
+        
+print('sale:\n___________\n', salesdf)
 
 
-#@ adjustments df
+
+#? adjustments df
 
 adjustmentsdf = pd.DataFrame({
         'Invoice No.': [],
@@ -170,7 +172,7 @@ for index, row in pivot.iterrows():
     qty = row['new qty']
     amount = row['total']
     if row['type'] == 'Adjustment':
-        salesdf = salesdf.append({
+        adjustmentsdf = adjustmentsdf.append({
             'Invoice No.': int(1002),
             'Customer': 'Amazon',
             'Invoice Date': date_end,
@@ -180,9 +182,9 @@ for index, row in pivot.iterrows():
             'Amount': amount,
             }, ignore_index=True)
         
-print(adjustmentsdf)
+print('Adjustments:\n___________\n', adjustmentsdf)
 
-#@ G&R and liquidations 
+#? G&R and liquidations 
 
 grdf = pd.DataFrame({
         'Invoice No.': [],
@@ -199,17 +201,17 @@ for index, row in pivot.iterrows():
     qty = row['new qty']
     amount = row['total']
     if row['type'] == 'G&R' or row['type'] == 'Liquidation':
-        salesdf = salesdf.append({
+        grdf = grdf.append({
             'Invoice No.': int(1003),
             'Customer': 'Amazon',
             'Invoice Date': date_end,
-            'Memo': f'Sales {date_start} - {date_end}',
+            'Memo': f'G&R + Liquidations {date_start} - {date_end}',
             'Product/Service': sku,
             'Qty': int(qty),
             'Amount': amount,
             }, ignore_index=True)
         
-print(grdf)
+print('G&R and Liquidations\n___________\n', grdf)
 
 #! refunds and fees
 
@@ -223,18 +225,29 @@ refundsdf = pd.DataFrame({
         'Amount': [],
     })
 
+for index, row in pivot.iterrows():
+    sku = row['qb_sku']
+    qty = row['new qty']
+    amount = row['total']
+    if row['type'] == 'Refund' or row['type'] == 'FBA Inventory Fee':
+        grdf = grdf.append({
+            'Invoice No.': int(1003),
+            'Customer': 'Amazon',
+            'Invoice Date': date_end,
+            'Memo': f'G&R + Liquidations {date_start} - {date_end}',
+            'Product/Service': sku,
+            'Qty': int(qty),
+            'Amount': amount,
+            }, ignore_index=True)
 
 
 
 
+#? export properly formatted invoice as per qb requirements
 
-#@ export properly formatted invoice as per qb requirements
-
-# pivot.to_csv('invoice.csv')
-print('--------------------')
-print('Invoice successfully saved!')
-
-
-# @ export credit memo of all returns and fees to be entered manually (💩)
-
-# jeez i haven't even bothered with this yet
+#salesdf.to_csv(f'sales_{date_end}.csv')
+#adjustmentsdf.to_csv(f'adjustments_{date_end}.csv')
+#grdf.to_csv(f'G&R_{date_end}.csv')
+#refundsdf.to_csv(f'refunds_{date_end}.csv')
+#print('--------------------')
+#print('Invoice successfully saved!')
