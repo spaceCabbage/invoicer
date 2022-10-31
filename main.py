@@ -90,8 +90,9 @@ qb_merged = report_data.merge(lookup, how='left', on='sku')
 qb_merged['new qty'] = qb_merged['quantity'] * qb_merged['multiplier']
 
 #! change other line types to fit in one of the types
-#! Liquidations Adjustments
-#!
+# Liquidations adjustments if negative should be refunds
+# fee adjustments, FBA Inventory Fee, should be "fee"
+# check all other types that a line item can be
     
 
 # ? set all negative adjustments as type refund
@@ -104,7 +105,7 @@ for index, row in qb_merged.iterrows():
             
         
 
-# ? set all ORDER! skus starting with "amzn.gr." as type "GR"
+# ? set all order skus starting with "amzn.gr." as type "GR"
 
 for index, row in qb_merged.iterrows():
     if row['sku'].startswith('amzn.gr.'):
@@ -119,9 +120,9 @@ for index, row in qb_merged.iterrows():
 pivot = pd.pivot_table(qb_merged, index=['type', 'qb_sku'], values=['new qty', 'total'], aggfunc=np.sum)
 pivot = pivot.reset_index()
 
-#? dfs for each report to be exported as csv's
 
 #@ sales df
+
 #! replace append with concat
 
 salesdf = pd.DataFrame({
@@ -213,7 +214,8 @@ for index, row in pivot.iterrows():
         
 print('G&R and Liquidations\n___________\n', grdf)
 
-#! refunds and fees
+#@ refunds and fees
+#see if i can upload credit memos also
 
 refundsdf = pd.DataFrame({
         'Invoice No.': [],
@@ -229,12 +231,12 @@ for index, row in pivot.iterrows():
     sku = row['qb_sku']
     qty = row['new qty']
     amount = row['total']
-    if row['type'] == 'Refund' or row['type'] == 'FBA Inventory Fee':
-        grdf = grdf.append({
-            'Invoice No.': int(1003),
+    if row['type'] == 'Refund' or row['type'] == 'Fee':
+        refundsdf = refundsdf.append({
+            'Invoice No.': int(1004),
             'Customer': 'Amazon',
             'Invoice Date': date_end,
-            'Memo': f'G&R + Liquidations {date_start} - {date_end}',
+            'Memo': f'Refunds and Fees {date_start} - {date_end}',
             'Product/Service': sku,
             'Qty': int(qty),
             'Amount': amount,
