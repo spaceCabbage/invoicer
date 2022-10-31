@@ -13,6 +13,9 @@ report = 'sample_report.csv'
 report_data = pd.read_csv(report)
 lookup = pd.read_csv('sku_replacement.csv')
 
+#! date picker
+date_start = '4/4/2020'
+date_end = '4/10/2020'
 
 # ? get all skus that are not found in lookup df
 
@@ -23,9 +26,9 @@ er_df = er_df[er_df['_merge'] == 'left_only']
 er_df = er_df.drop_duplicates(subset='sku')
 
 
-# ? fix missing skus
+# ? fix missing skus in lookup df
 
-def ercheck():
+def ercheck(lookup):
     print('the following skus cannot be placed')
     print(er_df.sku)
     print('-------------------')
@@ -59,7 +62,8 @@ def ercheck():
     if confirm == 'y':
         print('CONFIRMED!\nAdding these rows to the lookup table for next time')
         # add df of new skus to lookup.csv
-        new_skus.to_csv('sku_replacement.csv', mode='a', index=False, header=False)
+        #new_skus.to_csv('sku_replacement.csv', mode='a', index=False, header=False)
+        lookup = lookup.append(new_skus, ignore_index=True)
         print('--------------------')
 
 
@@ -71,12 +75,11 @@ def ercheck():
         print('-------------------')
         ercheck()
     
-ercheck()   
+ercheck(lookup)   
     
 
-#@ make df for each invoice (sales, g&r, adjustments, refunds)
     
-# ! get correct skus from lookup df
+# ? get correct skus from lookup df
 #gotta figure out how to also lookup from the new_skus df too
 qb_merged = report_data.merge(lookup, how='left', on='sku')
 
@@ -102,23 +105,132 @@ for index, row in qb_merged.iterrows():
         if row['type'] == 'Order':
             qb_merged.at[index, 'type'] = 'G&R'
             print(row['sku'] + ' changed to G&R')
+            
+#! parse g&r skus to get proper skus
 
 
 # ? pivot report_data on new sku, total new qty, total price
 
 pivot = pd.pivot_table(qb_merged, index=['type', 'qb_sku'], values=['new qty', 'total'], aggfunc=np.sum)
+pivot = pivot.reset_index()
+print(pivot)
+
+# dfs for each report to be exported as csv's
+# they each need a col for
+#'invoice No.', 'Customer', 'Invoice Date', 'Memo', 'Product/Service', 'Qty', 'Amount'
+# customer, date, and memo only th efirst line should be filled
+# the onvoice number should be 1001+ for all of them
+
+#@ sales df
+
+salesdf = pd.DataFrame({
+        'Invoice No.': [],
+        'Customer': [],
+        'Invoice Date': [],
+        'Memo': [],
+        'Product/Service': [],
+        'Qty': [],
+        'Amount': [],
+    })
+print(pivot)
+for index, row in pivot.iterrows():
+    sku = row['qb_sku']
+    qty = row['new qty']
+    amount = row['total']
+    if row['type'] == 'Order':
+        salesdf = salesdf.append({
+            'Invoice No.': int(1001),
+            'Customer': 'Amazon',
+            'Invoice Date': date_end,
+            'Memo': f'Sales {date_start} - {date_end}',
+            'Product/Service': sku,
+            'Qty': int(qty),
+            'Amount': amount,
+            }, ignore_index=True)
+        
+print(salesdf)
+
+#! deduct ebay order qty from total qty (leave total price)
+
+
+#@ adjustments df
+
+adjustmentsdf = pd.DataFrame({
+        'Invoice No.': [],
+        'Customer': [],
+        'Invoice Date': [],
+        'Memo': [],
+        'Product/Service': [],
+        'Qty': [],
+        'Amount': [],
+    })
+
+for index, row in pivot.iterrows():
+    sku = row['qb_sku']
+    qty = row['new qty']
+    amount = row['total']
+    if row['type'] == 'Adjustment':
+        salesdf = salesdf.append({
+            'Invoice No.': int(1002),
+            'Customer': 'Amazon',
+            'Invoice Date': date_end,
+            'Memo': f'Adjustments {date_start} - {date_end}',
+            'Product/Service': sku,
+            'Qty': int(qty),
+            'Amount': amount,
+            }, ignore_index=True)
+        
+print(adjustmentsdf)
+
+#@ G&R and liquidations 
+
+grdf = pd.DataFrame({
+        'Invoice No.': [],
+        'Customer': [],
+        'Invoice Date': [],
+        'Memo': [],
+        'Product/Service': [],
+        'Qty': [],
+        'Amount': [],
+    })
+
+for index, row in pivot.iterrows():
+    sku = row['qb_sku']
+    qty = row['new qty']
+    amount = row['total']
+    if row['type'] == 'G&R' or row['type'] == 'Liquidation':
+        salesdf = salesdf.append({
+            'Invoice No.': int(1003),
+            'Customer': 'Amazon',
+            'Invoice Date': date_end,
+            'Memo': f'Sales {date_start} - {date_end}',
+            'Product/Service': sku,
+            'Qty': int(qty),
+            'Amount': amount,
+            }, ignore_index=True)
+        
+print(grdf)
+
+#! refunds and fees
+
+refundsdf = pd.DataFrame({
+        'Invoice No.': [],
+        'Customer': [],
+        'Invoice Date': [],
+        'Memo': [],
+        'Product/Service': [],
+        'Qty': [],
+        'Amount': [],
+    })
 
 
 
-# ! deduct ebay order qty from total qty (leave total price)
 
-# holy shit this ones gonna be hard
 
-# ? export properly formatted invoice as per qb requirements
+
+#@ export properly formatted invoice as per qb requirements
 
 # pivot.to_csv('invoice.csv')
-print(pivot)
-print('--------------------')
 print('--------------------')
 print('Invoice successfully saved!')
 
