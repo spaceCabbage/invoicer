@@ -44,17 +44,21 @@ def ercheck(lookup):
         ersku = row['sku']
         default_multiplier = 1
         
-        newsku = input('enter correct sku for ' + ersku + ' as per QB\n')
-        newmultiplier = input('enter product multiplier (leave blank for single packs): ') or default_multiplier
-        
-        print('-------------------')
-        
-        print('for sku ' + "\x1B[1;4m" + ersku + "\x1B[0m" + ' youve entered:\n' 'New SKU: ' + newsku + '\n' + 'Multiplier: ' + str(newmultiplier))
-        
-        print('-------------------')
-        
-        #add to newskus df
-        new_skus = new_skus.append({'sku': ersku, 'qb_sku': newsku, 'multiplier': newmultiplier}, ignore_index=True)
+        # dont try to fix amzn.gr. skus
+        if ersku.lower().startswith('amzn.gr.'):
+            pass
+        else:
+            newsku = input('enter correct sku for ' + ersku + ' as per QB\n')
+            newmultiplier = input('enter product multiplier (leave blank for single packs): ') or default_multiplier
+            
+            print('-------------------')
+            
+            print('for sku ' + "\x1B[1;4m" + ersku + "\x1B[0m" + ' youve entered:\n' 'New SKU: ' + newsku + '\n' + 'Multiplier: ' + str(newmultiplier))
+            
+            print('-------------------')
+            
+            #add to newskus df
+            new_skus = new_skus.append({'sku': ersku, 'qb_sku': newsku, 'multiplier': newmultiplier}, ignore_index=True)
 
     print(new_skus)
     confirm = input('does this look correct? (enter y/yes or n/no)\n')
@@ -62,7 +66,7 @@ def ercheck(lookup):
     if confirm == 'y':
         print('CONFIRMED!\nAdding these rows to the lookup table for next time')
         # add df of new skus to lookup.csv
-        #new_skus.to_csv('sku_replacement.csv', mode='a', index=False, header=False)
+        # new_skus.to_csv('sku_replacement.csv', mode='a', index=False, header=False)
         lookup = lookup.append(new_skus, ignore_index=True)
         print('--------------------')
 
@@ -84,6 +88,25 @@ ercheck(lookup)
 qb_merged = report_data.merge(lookup, how='left', on='sku')
 
 #! parse g&r skus to get proper skus
+# check if any part of a sku is contained in the lookup df
+
+for index, row in qb_merged.iterrows():
+     # for every G&R sku in the df
+    if row['sku'].lower().startswith('amzn.gr.'):
+        grsku = row['sku']
+        # check if its in the lookup df
+        for indexl, lrow in lookup.iterrows():
+            if lrow['qb_sku'].lower() in grsku.lower():
+                # set qb_sku in qb_merged df to correct sku
+                gsku = lookup.at[indexl, 'qb_sku']
+                qb_merged.at[index, 'qb_sku'] = gsku
+                print(f'changed {grsku} to {gsku}.')
+                # if its type of order change type to G&R
+                if row['type'] == 'Order':
+                    qb_merged.at[index, 'type'] = 'G&R'
+                    print(f'changed {grsku} to type of G&R.')
+                break        
+
 
 # ? multiply qty by multiplier
 
