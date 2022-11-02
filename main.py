@@ -157,7 +157,7 @@ pivot = pivot.reset_index()
 
 
 
-#@ sales df
+#? sales df
 
 salesdf = pd.DataFrame({
         'Invoice No.': [],
@@ -277,7 +277,7 @@ for index, row in pivot.iterrows():
 print('\n\nRefunds and Fees:\n___________\n', refundsdf)
 
 
-#? export properly formatted invoice as per qb requirements
+#@ export properly formatted invoice as per qb requirements
 
 #salesdf.to_csv(f'sales_{date_end}.csv')
 #adjustmentsdf.to_csv(f'adjustments_{date_end}.csv')
