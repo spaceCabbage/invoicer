@@ -1,6 +1,12 @@
+from tkinter import Y
 import pandas as pd
 import numpy as np
 import easygui
+
+
+#! replace append with concat
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning) 
 
 
 # ? choose file
@@ -87,7 +93,9 @@ ercheck(lookup)
 #gotta figure out how to also lookup from the new_skus df too
 qb_merged = report_data.merge(lookup, how='left', on='sku')
 
-#! parse g&r skus to get proper skus
+
+
+#? parse g&r skus to get proper skus
 # check if any part of a sku is contained in the lookup df
 
 for index, row in qb_merged.iterrows():
@@ -100,6 +108,7 @@ for index, row in qb_merged.iterrows():
                 # set qb_sku in qb_merged df to correct sku
                 gsku = lookup.at[indexl, 'qb_sku']
                 qb_merged.at[index, 'qb_sku'] = gsku
+                qb_merged.at[index, 'multiplier'] = lookup.at[indexl, 'multiplier']
                 print(f'changed {grsku} to {gsku}.')
                 # if its type of order change type to G&R
                 if row['type'] == 'Order':
@@ -124,18 +133,9 @@ for index, row in qb_merged.iterrows():
     if row['type'] == 'Adjustment':
         if row['total'] < 0:
             qb_merged.at[index, 'type'] = 'Refund'
-            print(row['sku'] + ' changed to refund')
+            print(row['sku'] + ' changed to Refund')
             
-        
-
-# ? set all order skus starting with "amzn.gr." as type "GR"
-
-for index, row in qb_merged.iterrows():
-    if row['sku'].startswith('amzn.gr.'):
-        if row['type'] == 'Order':
-            qb_merged.at[index, 'type'] = 'G&R'
-            print(row['sku'] + ' changed to G&R')
-            
+#! set all rows with marketplace 'sim1' to 0 qty
 
 
 # ? pivot report_data on new sku, total new qty, total price
@@ -144,9 +144,8 @@ pivot = pd.pivot_table(qb_merged, index=['type', 'qb_sku'], values=['new qty', '
 pivot = pivot.reset_index()
 
 
-#@ sales df
 
-#! replace append with concat
+#@ sales df
 
 salesdf = pd.DataFrame({
         'Invoice No.': [],
@@ -172,10 +171,8 @@ for index, row in pivot.iterrows():
             'Qty': int(qty),
             'Amount': amount,
             }, ignore_index=True)
-        
-#! deduct ebay order qty from total qty (leave total price)
-        
-print('sale:\n___________\n', salesdf)
+                
+print('\n\nsales:\n___________\n', salesdf)
 
 
 
@@ -206,7 +203,7 @@ for index, row in pivot.iterrows():
             'Amount': amount,
             }, ignore_index=True)
         
-print('Adjustments:\n___________\n', adjustmentsdf)
+print('\n\nAdjustments:\n___________\n', adjustmentsdf)
 
 #? G&R and liquidations 
 
@@ -235,9 +232,9 @@ for index, row in pivot.iterrows():
             'Amount': amount,
             }, ignore_index=True)
         
-print('G&R and Liquidations\n___________\n', grdf)
+print('\n\nG&R and Liquidations:\n___________\n', grdf)
 
-#@ refunds and fees
+#? refunds and fees
 #see if i can upload credit memos also
 
 refundsdf = pd.DataFrame({
@@ -265,7 +262,7 @@ for index, row in pivot.iterrows():
             'Amount': amount,
             }, ignore_index=True)
 
-
+print('\n\nRefunds and Fees:\n___________\n', refundsdf)
 
 
 #? export properly formatted invoice as per qb requirements
