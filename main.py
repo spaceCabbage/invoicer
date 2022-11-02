@@ -31,10 +31,15 @@ er_df = er_df[er_df['_merge'] == 'left_only']
 
 er_df = er_df.drop_duplicates(subset='sku')
 
+# remove G&R skus from er_df
+for index, row in er_df.iterrows():
+    if row['sku'].lower().startswith('amzn.gr.'):
+        er_df.drop(index, inplace=True)
 
 # ? fix missing skus in lookup df
 
 def ercheck(lookup):
+   
     print('the following skus cannot be placed')
     print(er_df.sku)
     print('-------------------')
@@ -53,6 +58,7 @@ def ercheck(lookup):
         # dont try to fix amzn.gr. skus
         if ersku.lower().startswith('amzn.gr.'):
             pass
+        
         else:
             newsku = input('enter correct sku for ' + ersku + ' as per QB\n')
             newmultiplier = input('enter product multiplier (leave blank for single packs): ') or default_multiplier
@@ -84,8 +90,14 @@ def ercheck(lookup):
         print('---- ATTEMPT 2 ----') 
         print('-------------------')
         ercheck(lookup)
-    
-ercheck(lookup)   
+
+if len(er_df.index) == 0:
+    print('---------------------')
+    print('-- ALL SKUs PLACED --')
+    print('---------------------')
+    print('\ncontinuing...........\n')
+else:  
+    ercheck(lookup)   
     
 
     
