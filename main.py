@@ -27,7 +27,7 @@ date_end = "4/10/2020"
 
 
 # ? get all skus that are not found in lookup df
-print("\nLoading Lookup Table........")
+print("\nLoading Lookup Table....")
 
 er_df = report_data.merge(lookup, how="outer", on="sku", indicator=True)
 
@@ -45,8 +45,8 @@ for index, row in er_df.iterrows():
 
 def ercheck(lookup):
 
-    print("the following skus cannot be placed")
-    print(er_df.sku)
+    print("\nThe following skus cannot be placed:")
+    print(er_df["sku"])
     print("-------------------")
 
     new_skus = pd.DataFrame(
@@ -106,7 +106,7 @@ def ercheck(lookup):
         ercheck(lookup)
 
 
-print("\Fixing Incorrect SKUs........")
+print("\nFixing Incorrect SKUs....")
 
 if len(er_df.index) == 0:
     print("---------------------")
@@ -120,11 +120,13 @@ else:
 # gotta figure out how to also lookup from the new_skus df too
 qb_merged = report_data.merge(lookup, how="left", on="sku")
 
+# @ convert all sku columns into str
+
 print("\nFinished Fetching Correct SKUs")
 
 # ? parse g&r skus to get proper skus
 # check if any part of a sku is contained in the lookup df
-print("\nParsing Grade and Resell SKUs.......")
+print("\nParsing Grade and Resell SKUs...")
 
 for index, row in qb_merged.iterrows():
     # for every G&R sku in the df
@@ -147,14 +149,14 @@ for index, row in qb_merged.iterrows():
 
 # ? multiply qty by multiplier
 
-print("\nMultiplying Kits.......")
+print("\nMultiplying Kits...")
 
 qb_merged["new qty"] = qb_merged["quantity"] * qb_merged["multiplier"]
 
 
 # ? Handle all adjustment cases
 
-print("Fixing Adjustments.......")
+print("Fixing Adjustments...")
 
 for index, row in qb_merged.iterrows():
     if row["type"] == "Fee Adjustment":
@@ -169,7 +171,7 @@ for index, row in qb_merged.iterrows():
 
 # ? handle all assorted fees
 
-print("Fixing Fees.......")
+print("Fixing Fees...")
 
 fee_types = [
     "Service Fee",
@@ -189,7 +191,7 @@ for index, row in qb_merged.iterrows():
 
 # ? set all negative adjustments as type refund
 
-print("\nFixing Negative Adjustments.......")
+print("\nFixing Negative Adjustments...")
 
 for index, row in qb_merged.iterrows():
     if row["type"] == "Adjustment":
@@ -199,7 +201,7 @@ for index, row in qb_merged.iterrows():
 
 # ? set all rows with marketplace 'sim1' to 0 qty
 
-print("\nFixing Ebay Orders.......")
+print("\nFixing Ebay Orders...")
 
 for index, row in qb_merged.iterrows():
     if row["marketplace"] == "sim1.stores.amazon.com" and row["type"] == "Order":
@@ -209,14 +211,14 @@ for index, row in qb_merged.iterrows():
 
 # ? pivot report_data on new sku, total new qty, total price
 
-print("\nCreating Pivot Table.......")
+print("\nCreating Pivot Table...")
 
 pivot = pd.pivot_table(
     qb_merged, index=["type", "qb_sku"], values=["new qty", "total"], aggfunc=np.sum
 )
 pivot = pivot.reset_index()
 
-print("\nSplitting Invoices.......")
+print("\nSplitting Invoices...")
 
 # ? sales df
 
