@@ -25,6 +25,7 @@ date_start = "4/4/2020"
 date_end = "4/10/2020"
 
 # ? get all skus that are not found in lookup df
+print("\nLoading Lookup Table........")
 
 er_df = report_data.merge(lookup, how="outer", on="sku", indicator=True)
 
@@ -103,11 +104,12 @@ def ercheck(lookup):
         ercheck(lookup)
 
 
+print("\Fixing Incorrect SKUs........")
+
 if len(er_df.index) == 0:
     print("---------------------")
-    print("-- ALL SKUs PLACED --")
+    print("-- ALL SKUs FIXED ---")
     print("---------------------")
-    print("\ncontinuing...........\n")
 else:
     ercheck(lookup)
 
@@ -116,9 +118,11 @@ else:
 # gotta figure out how to also lookup from the new_skus df too
 qb_merged = report_data.merge(lookup, how="left", on="sku")
 
+print("\nFinished Fetching Correct SKUs")
 
 # ? parse g&r skus to get proper skus
 # check if any part of a sku is contained in the lookup df
+print("\nParsing Grade and Resell SKUs.......")
 
 for index, row in qb_merged.iterrows():
     # for every G&R sku in the df
@@ -131,42 +135,86 @@ for index, row in qb_merged.iterrows():
                 gsku = lookup.at[indexl, "qb_sku"]
                 qb_merged.at[index, "qb_sku"] = gsku
                 qb_merged.at[index, "multiplier"] = lookup.at[indexl, "multiplier"]
-                print(f"changed {grsku} to {gsku}.")
+                print(f"    changed {grsku} to {gsku}.")
                 # if its type of order change type to G&R
                 if row["type"] == "Order":
                     qb_merged.at[index, "type"] = "G&R"
-                    print(f"changed {grsku} to type of G&R.")
+                    print(f"    changed {grsku} to type of G&R.")
                 break
 
 
 # ? multiply qty by multiplier
 
+print("\nMultiplying Kits.......")
+
 qb_merged["new qty"] = qb_merged["quantity"] * qb_merged["multiplier"]
 
-#! change other line types to fit in one of the types
-# Liquidations adjustments if negative should be refunds
-# fee adjustments, FBA Inventory Fee, should be "fee"
-# check all other types that a line item can be
+
+# @ Handle all adjustment cases
+
+print("Fixing Adjustments.......")
+
+for index, row in qb_merged.iterrows():
+    if row["type"] == "Fee Adjustment":
+        qb_merged.at[index, "type"] = "Adjustment"
+        qb_merged.at[index, "qb_sku"] = "Fee Adjustment"
+        print("    Fixed Fee Adjustment.")
+
+    elif row["type"] == "Liquidation Adjustments":
+        qb_merged.at[index, "type"] = "Adjustment"
+        print("    " + row["qb_sku"] + "Set to Adjustment")
+
+
+# @ handle all assorted fees
+
+print("Fixing Fees.......")
+
+fee_types = [
+    "Service Fee",
+    "FBA Customer Return Fee",
+    "FBA Inventory Fee",
+    "Shipping",
+    "Shipping Fee",
+    "Shipping Services",
+]
+
+for index, row in qb_merged.iterrows():
+    if row["type"] in fee_types:
+        fee = row["type"]
+        qb_merged.at[index, "type"] = "Fee"
+        print(f"    Fixed {fee}.")
 
 
 # ? set all negative adjustments as type refund
+
+print("\nFixing Negative Adjustments.......")
 
 for index, row in qb_merged.iterrows():
     if row["type"] == "Adjustment":
         if row["total"] < 0:
             qb_merged.at[index, "type"] = "Refund"
-            print(row["sku"] + " changed to Refund")
+            print("    " + row["sku"] + " changed to Refund")
 
-#! set all rows with marketplace 'sim1' to 0 qty
+# ? set all rows with marketplace 'sim1' to 0 qty
+
+print("\nFixing Ebay Orders.......")
+
+for index, row in qb_merged.iterrows():
+    if row["marketplace"] == "sim1.stores.amazon.com" and row["type"] == "Order":
+        qb_merged.at[index, "marketplace"] = 0
+        print("    " + row["qb_sku"] + "qty removed: Ebay Item.")
 
 
 # ? pivot report_data on new sku, total new qty, total price
+
+print("\nCreating Pivot Table.......")
 
 pivot = pd.pivot_table(
     qb_merged, index=["type", "qb_sku"], values=["new qty", "total"], aggfunc=np.sum
 )
 pivot = pivot.reset_index()
 
+print("\nSplitting Invoices.......")
 
 # ? sales df
 
@@ -286,6 +334,7 @@ refundsdf = pd.DataFrame(
     }
 )
 
+
 for index, row in pivot.iterrows():
     sku = row["qb_sku"]
     qty = row["new qty"]
@@ -309,9 +358,36 @@ print("\n\nRefunds and Fees:\n___________\n", refundsdf)
 
 # @ export properly formatted invoice as per qb requirements
 
+print("\nExporting to Excel......\n")
+
 # salesdf.to_csv(f'sales_{date_end}.csv')
 # adjustmentsdf.to_csv(f'adjustments_{date_end}.csv')
 # grdf.to_csv(f'G&R_{date_end}.csv')
 # refundsdf.to_csv(f'refunds_{date_end}.csv')
 # print('--------------------')
 # print('Invoice successfully saved!')
+
+
+#! print errors
+ers = 0
+types = ["Order", "Adjustment", "G&R", "Liquidation", "Refund", "Fee"]
+
+for index, row in qb_merged.iterrows():
+    if row["qb_sku"] == "NaN":
+        sku = row["sku"]
+        ers += 1
+        print("{sku} is blank")
+
+    elif row["type"] not in types:
+        unknown_type = row["type"]
+        ers += 1
+        print(f"Unknown Type: {unknown_type}")
+
+print(f"{ers} errors")
+
+# ? Done Message
+if ers == 0:
+    print("\nDONE.")
+    exit(0)
+else:
+    exit(1)
