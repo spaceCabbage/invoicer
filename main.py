@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
-import easygui
+
+# import easygui
 
 
 #! replace append with concat
