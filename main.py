@@ -1,4 +1,3 @@
-from tkinter import Y
 import pandas as pd
 import numpy as np
 import easygui
