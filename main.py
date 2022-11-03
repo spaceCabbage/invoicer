@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 # import easygui
 
 
@@ -23,6 +24,7 @@ lookup = pd.read_csv("sku_replacement.csv")
 #! date picker
 date_start = "4/4/2020"
 date_end = "4/10/2020"
+
 
 # ? get all skus that are not found in lookup df
 print("\nLoading Lookup Table........")
@@ -150,7 +152,7 @@ print("\nMultiplying Kits.......")
 qb_merged["new qty"] = qb_merged["quantity"] * qb_merged["multiplier"]
 
 
-# @ Handle all adjustment cases
+# ? Handle all adjustment cases
 
 print("Fixing Adjustments.......")
 
@@ -165,7 +167,7 @@ for index, row in qb_merged.iterrows():
         print("    " + row["qb_sku"] + "Set to Adjustment")
 
 
-# @ handle all assorted fees
+# ? handle all assorted fees
 
 print("Fixing Fees.......")
 
@@ -356,19 +358,7 @@ for index, row in pivot.iterrows():
 print("\n\nRefunds and Fees:\n___________\n", refundsdf)
 
 
-# @ export properly formatted invoice as per qb requirements
-
-print("\nExporting to Excel......\n")
-
-# salesdf.to_csv(f'sales_{date_end}.csv')
-# adjustmentsdf.to_csv(f'adjustments_{date_end}.csv')
-# grdf.to_csv(f'G&R_{date_end}.csv')
-# refundsdf.to_csv(f'refunds_{date_end}.csv')
-# print('--------------------')
-# print('Invoice successfully saved!')
-
-
-#! print errors
+# ? print errors
 ers = 0
 types = ["Order", "Adjustment", "G&R", "Liquidation", "Refund", "Fee"]
 
@@ -383,11 +373,20 @@ for index, row in qb_merged.iterrows():
         ers += 1
         print(f"Unknown Type: {unknown_type}")
 
-print(f"{ers} errors")
 
 # ? Done Message
 if ers == 0:
-    print("\nDONE.")
+    print("\nExporting to Excel......\n")
+
+    # @ salesdf.to_csv(f'sales_{date_end}.csv')
+    # @ adjustmentsdf.to_csv(f'adjustments_{date_end}.csv')
+    # @ grdf.to_csv(f'G&R_{date_end}.csv')
+    # @ refundsdf.to_csv(f'refunds_{date_end}.csv')
+    # @ print('--------------------')
+
+    # @ print('Invoice successfully saved!')
+
     exit(0)
 else:
+    print(f"{ers} errors")
     exit(1)
