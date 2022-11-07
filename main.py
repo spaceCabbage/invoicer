@@ -11,7 +11,6 @@ import warnings
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-
 # ? choose file
 
 # GUI file picker
@@ -25,7 +24,6 @@ lookup = pd.read_csv("sku_replacement.csv")
 #! date picker
 date_start = "4/4/2020"
 date_end = "4/10/2020"
-
 
 # ? get all skus that are not found in lookup df
 print("\nLoading Lookup Table....")
