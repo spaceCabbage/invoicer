@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from rich import print
 
 
 # import easygui
@@ -25,6 +24,10 @@ lookup = pd.read_csv("sku_replacement.csv")
 date_start = "4/4/2020"
 date_end = "4/10/2020"
 
+print(report_data)
+print(lookup)
+
+
 # ? get all skus that are not found in lookup df
 print("\nLoading Lookup Table....")
 
@@ -38,6 +41,7 @@ er_df = er_df.drop_duplicates(subset="sku")
 for index, row in er_df.iterrows():
     if row["sku"].lower().startswith("amzn.gr."):
         er_df.drop(index, inplace=True)
+
 
 # ? fix missing skus in lookup df
 
@@ -119,7 +123,9 @@ else:
 # gotta figure out how to also lookup from the new_skus df too
 qb_merged = report_data.merge(lookup, how="left", on="sku")
 
-# @ convert all sku columns into str
+# convert skus to strings
+qb_merged[["sku", "qb_sku"]] = qb_merged[["sku", "qb_sku"]].astype(str)
+
 
 print("\nFinished Fetching Correct SKUs")
 
